@@ -1,11 +1,12 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 
 @dataclass
 class Node:
     info: int | str
-    prev: "Node" | None = None
-    next: "Node" | None = None
+    prev: Node | None = None
+    next: Node | None = None
 
 
 class CircularDoublyLinkedList:
@@ -56,9 +57,12 @@ class CircularDoublyLinkedList:
         """
             Insert a node at the given position (1-indexed).
             Negative positions count from the end.
+            Position 0 is treated as position 1 (head).
         """
+        if posi == 0:
+            posi = 1
         # if posi = -1   ===>   tail <->> head   will become   new_node <->> tail <->> head
-        if posi < 1:
+        elif posi < 0:
             posi = self._size + posi + 1
         
         # tail <->> head   ===>   tail <->> new_node <->> head

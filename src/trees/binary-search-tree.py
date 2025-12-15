@@ -129,6 +129,9 @@ class BinarySearchTree:
             elif data > node.data:
                 node.right = helper(node.right, data)
             else:
+                #      A
+                #    B  C
+                #   E  F  G
                 # Handling leaf node
                 if (node.left is None) and (node.right is None):
                     return None

@@ -1,7 +1,9 @@
+import sys
 import math
 import heapq
 from enum import Enum
 from collections import deque
+
 
 
 class GraphType(Enum):
@@ -61,7 +63,7 @@ class BaseGraph:
             Performs Breadth First Search (BFS) traversal. Explores graph level by level using a queue, similar to level-order tree traversal.
 
             Returns:
-                tuple: (parent, graph_components) where parent[i] = j means node i's parent is j (-1 for roots), and graph_components is list of traversal orders per connected component
+                tuple: (parent, connected_components) where parent[i] = j means node i's parent is j (-1 for roots), and connected_components is list of traversal orders per connected component
 
             Time Complexity: O(V + E)
             Space Complexity: O(V)
@@ -73,36 +75,36 @@ class BaseGraph:
         """
         visited: list[bool] = [False] * self.V
         parent: list[int] = [-1] * self.V  
-        graph_components: list[list[int]] = []  
+        connected_components: list[list[int]] = []  
         queue: deque[int] = deque()
         
         # Handling Disconnected Graphs => O(V + E) TC
         for start_node in range(self.V):
             if not visited[start_node]:
+                # Starting the BFS on a new Connected Component
                 visited[start_node] = True
-                graph_components.append([]) 
+                connected_components.append([]) 
                 queue.append(start_node) 
                 
-                # BFS on a new connected component
                 while queue:
-                    # BFS traversal on current_node is started
                     current_node = queue.popleft()  
+                    # BFS traversal started on current_node
+                    connected_components[-1].append(current_node) 
                     for weight, neighbor in self._adjacency_list[current_node]:  # O(degree(current_node))
                         if not visited[neighbor]:
                             visited[neighbor] = True # node visited but not traversed yet
                             parent[neighbor] = current_node  
                             queue.append(neighbor)  
-                    # BFS on current_node is completed
-                    graph_components[-1].append(current_node) 
+                    # BFS traversal completed on current_node
         
-        return parent, graph_components
+        return parent, connected_components
 
     def dfs(self):
         """
             Performs Depth First Search (DFS) traversal recursively. Explores as deep as possible before backtracking, similar to pre-order tree traversal.
 
             Returns:
-                tuple: (parent, graph_components) where parent[i] = j means node i's parent is j (-1 for roots), and graph_components is list of traversal orders per connected component
+                tuple: (parent, connected_components) where parent[i] = j means node i's parent is j (-1 for roots), and connected_components is list of traversal orders per connected component
 
             Time Complexity: O(V + E)
             Space Complexity: O(V) + recursion stack O(V)
@@ -113,28 +115,31 @@ class BaseGraph:
                 - Single node graph
                 - Deep graphs (stack overflow risk for very deep graphs)
         """
+        sys.setrecursionlimit(self.V + 1000)
+
         visited: list[bool] = [False] * self.V
         parent: list[int] = [-1] * self.V
-        graph_components: list[list[int]] = []
+        connected_components: list[list[int]] = []
         
         def dfs_helper(current_node: int, parent_node: int):
             visited[current_node] = True
             parent[current_node] = parent_node
-            graph_components[-1].append(current_node) # Pre-Order Traversal
             # DFS traversal on current_node started
+            connected_components[-1].append(current_node) # Pre-Order Traversal
             for weight, neighbor in self._adjacency_list[current_node]:
                 if not visited[neighbor]:
                     dfs_helper(neighbor, current_node)
             # DFS traversal on current_node completed
-            # graph_components[-1].append(current_node) # Post-Order Traversal
+            # connected_components[-1].append(current_node) # Post-Order Traversal
 
         # Handling Disconnected Graphs => O(V + E) TC
         for start_node in range(self.V):
             if not visited[start_node]:
-                graph_components.append([])
+                # Starting the DFS on a new Connected Component
+                connected_components.append([])
                 dfs_helper(start_node, -1)
         
-        return parent, graph_components
+        return parent, connected_components
 
     # # BaseGraph: Redundant method, use dfs instead
     # def dfs_iterative(self):
@@ -142,7 +147,7 @@ class BaseGraph:
     #         Performs Depth First Search (DFS) traversal iteratively using a stack. Explores as deep as possible before backtracking, similar to pre-order tree traversal.
 
     #         Returns:
-    #             tuple: (parent, graph_components) where parent[i] = j means node i's parent is j (-1 for roots), and graph_components is list of traversal orders per connected component
+    #             tuple: (parent, connected_components) where parent[i] = j means node i's parent is j (-1 for roots), and connected_components is list of traversal orders per connected component
 
     #         Time Complexity: O(V + E)
     #         Space Complexity: O(V)
@@ -154,21 +159,21 @@ class BaseGraph:
     #     """
     #     visited: list[bool] = [False] * self.V
     #     parent: list[int] = [-1] * self.V  
-    #     graph_components: list[list[int]] = []  
+    #     connected_components: list[list[int]] = []  
     #     stack: list[int] = []
 
     #     # Handling Disconnected Graphs => O(V + E) TC
     #     for start_node in range(self.V):
     #         if not visited[start_node]:
     #             visited[start_node] = True
-    #             graph_components.append([])
+    #             connected_components.append([])
     #             stack.append(start_node)
 
     #             # DFS on a new connected component
     #             while stack:
     #                 # DFS traversal on current_node is started
     #                 current_node = stack.pop() 
-    #                 graph_components[-1].append(current_node) 
+    #                 connected_components[-1].append(current_node) 
     #                 for weight, neighbor in self._adjacency_list[current_node]: # O(degree(current_node))
     #                     if not visited[neighbor]:
     #                         visited[neighbor] = True  # node visited but not traversed yet
@@ -176,7 +181,7 @@ class BaseGraph:
     #                         stack.append(neighbor) 
     #                 # DFS on current_node is not completed yet
         
-    #     return parent, graph_components
+    #     return parent, connected_components
 
     # ********* SSSP Methods *********
     def _reconstruct_path(self, source_node: int, destination_node: int, visited: list[bool], parent: list[int]):
@@ -398,29 +403,31 @@ class DirectedGraph(BaseGraph):
         """
         return len(self._adjacency_list[node])
 
-    def get_in_degree(self, node: int):
+    def get_in_degree(self, target_node: int):
         """
-            Returns the in-degree of a node (number of incoming edges) by counting edges pointing to the node.
+            Returns the in-degree of a target_node (number of incoming edges) by counting edges pointing to the target_node.
 
             Args:
-                node: Node to get in-degree for
+                target_node: Node to get in-degree for
 
             Returns:
-                int: Number of incoming edges to the node
+                int: Number of incoming edges to the target_node
 
             Time Complexity: O(V + E)
             Space Complexity: O(1)
 
             Edge Cases:
-                - Invalid node index (IndexError)
+                - Invalid target_node index (IndexError)
                 - Node with no incoming edges (returns 0)
         """
         in_degree_count = 0
         
-        for current_node in range(self.V):
-            for weight, neighbor in self._adjacency_list[current_node]:
-                if neighbor == node:
+        for source_node in range(self.V):
+            for weight, destination_node in self._adjacency_list[source_node]:
+                if destination_node == target_node:
                     in_degree_count += 1
+                    break
+        
         return in_degree_count
 
     # ********* Graph Traversal Based Methods *********
@@ -739,7 +746,7 @@ class UndirectedGraph(BaseGraph):
                 if not visited[neighbor]:
                     if dfs_helper(neighbor, current_node):
                         return True
-                # If neighbor is already visited and is not the child of the current node, we found a back edge (cycle)
+                # If neighbor is already visited and is not the parent of the current node =>we found a back edge (cycle)
                 elif neighbor != parent_node:
                     return True
             return False

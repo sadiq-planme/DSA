@@ -1,6 +1,4 @@
 """
-    Counting Sort - FANG Interview Essentials
-
     COMPLEXITY: Time O(n + k) where k = range (max - min + 1) | Space O(n + k) | Stable: Yes | In-place: No
     Non-comparison based → Breaks Ω(n log n) lower bound | Linear O(n) when k = O(n)
 

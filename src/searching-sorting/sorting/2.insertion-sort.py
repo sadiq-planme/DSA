@@ -1,6 +1,4 @@
 """
-    Insertion Sort - FANG Interview Quick Reference
-
     COMPLEXITY: Time O(n) best [sorted], O(n²) avg/worst | Space O(1) | Stable: Yes | Adaptive: Yes | Online: Yes
 
     ALGORITHM: Build sorted array incrementally. Insert each element into correct position in sorted portion.

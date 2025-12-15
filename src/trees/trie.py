@@ -24,13 +24,14 @@
     • Ternary Search Tree: 3 children per node (left/middle/right) for space-time tradeoff
 """
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 
 
 @dataclass
 class TrieNode:
     is_terminal: bool = False
-    children: list['TrieNode'] = field(default_factory=lambda: [None] * 26)
+    children: list[TrieNode] = field(default_factory=lambda: [None] * 26)
 
 
 class Trie:
@@ -64,8 +65,8 @@ class Trie:
     
     def insert(self, word: str) -> None:
         """
-        Inserts a word into the trie.
-        Time: O(m) where m is word length.
+            Inserts a word into the trie.
+            Time: O(m) where m is word length.
         """
         if not word:
             # Empty string: mark root as terminal
@@ -81,23 +82,23 @@ class Trie:
     
     def search(self, word: str) -> bool:
         """
-        Checks if word exists in trie (must be complete word, not just prefix).
-        Time: O(m) where m is word length.
+            Checks if word exists in trie (must be complete word, not just prefix).
+            Time: O(m) where m is word length.
         """
         node = self._find_node(word)
         return node.is_terminal if node else False
     
     def starts_with(self, prefix: str) -> bool:
         """
-        Checks if any word in trie starts with given prefix.
-        Time: O(m) where m is prefix length.
+            Checks if any word in trie starts with given prefix.
+            Time: O(m) where m is prefix length.
         """
         return self._find_node(prefix) is not None
     
     def soft_delete(self, word: str) -> bool:
         """
-        Returns True if word was found and deleted, False otherwise.
-        Time: O(m) where m is word length.
+            Returns True if word was found and deleted, False otherwise.
+            Time: O(m) where m is word length.
         """
         node = self._find_node(word)
         if not node or not node.is_terminal:
@@ -108,8 +109,8 @@ class Trie:
     
     def autocomplete(self, prefix: str) -> list[str]:
         """
-        Returns all words in trie that start with given prefix.
-        Time: O(n) where n is number of nodes in subtree.
+            Returns all words in trie that start with given prefix.
+            Time: O(n) where n is number of nodes in subtree.
         """
         node = self._find_node(prefix)
         if not node:
@@ -129,8 +130,8 @@ class Trie:
     
     def count_words_with_prefix(self, prefix: str) -> int:
         """
-        Returns count of words that start with given prefix.
-        Time: O(m + n) where m is prefix length, n is subtree size.
+            Returns count of words that start with given prefix.
+            Time: O(m + n) where m is prefix length, n is subtree size.
         """
         node = self._find_node(prefix)
         if not node:
@@ -147,8 +148,8 @@ class Trie:
 
     def longest_common_prefix(self) -> str:
         """
-        Returns the longest common prefix of all words in the trie.
-        Time: O(n) where n is number of nodes in trie.
+            Returns the longest common prefix of all words in the trie.
+            Time: O(n) where n is number of nodes in trie.
         """
         node = self.root
         prefix = ''
@@ -179,10 +180,10 @@ class Trie:
 
     def word_suggestions(self, word: str) -> list[list[str]]:
         """
-        Returns suggestions for each prefix of the word.
-        For each character position, returns all words that start with the prefix up to that point.
-        Time: O(m * n) where m is word length, n is average subtree size.
-        Space: O(m + h) where h is height of subtree (recursion stack).
+            Returns suggestions for each prefix of the word.
+            For each character position, returns all words that start with the prefix up to that point.
+            Time: O(m * n) where m is word length, n is average subtree size.
+            Space: O(m + h) where h is height of subtree (recursion stack).
         """
         if not word:
             return [self.autocomplete('')]

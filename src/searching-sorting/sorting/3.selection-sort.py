@@ -1,6 +1,4 @@
 """
-    Selection Sort - FANG Interview Notes
-
     COMPLEXITY: Time O(n²) all cases | Space O(1) | Stable: No | Adaptive: No
     Comparisons: O(n²) | Swaps: O(n) worst, O(1) best
 

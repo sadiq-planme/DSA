@@ -1,6 +1,4 @@
 """
-    Bubble Sort - FANG Interview Quick Reference
-
     COMPLEXITY: Time O(n²) worst/avg, O(n) best (early termination) | Space O(1) | Stable: Yes | Adaptive: Yes
 
     ALGORITHM: Compare adjacent elements, swap if out of order. Largest "bubbles up" each pass.

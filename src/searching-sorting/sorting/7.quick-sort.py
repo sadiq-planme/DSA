@@ -1,6 +1,4 @@
 """
-    Quick Sort - FANG Interview Notes
-
     COMPLEXITY: Time O(n log n) avg, O(n²) worst | Space O(log n) avg, O(n) worst | Stable: No | In-place: Yes
 
     ALGORITHM: Choose random pivot → Partition (≤ pivot left, > pivot right) → Recursively sort subarrays
@@ -22,7 +20,6 @@ import random
 
 
 class QuickSort:
-    """Lomuto partition with random pivot selection."""
 
     def __init__(self, arr: list[int]):
         self._arr = arr

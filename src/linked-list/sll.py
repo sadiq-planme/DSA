@@ -1,10 +1,11 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 
 @dataclass
 class Node:
     info: int | str
-    next: "Node" | None = None
+    next: Node | None = None
 
 
 class CircularSinglyLinkedList:
@@ -51,9 +52,12 @@ class CircularSinglyLinkedList:
         """
             Insert a node at the given position (1-indexed).
             Negative positions count from the end.
+            Position 0 is treated as position 1 (head).
         """
+        if posi == 0:
+            posi = 1
         # if posi = -1   ===>   tail ->> head   will become   new_node ->> tail ->> head
-        if posi < 1:
+        elif posi < 0:
             posi = self._size + posi + 1
         
         # tail ->> head   ===>  tail ->> new_node ->> previous node to head
@@ -150,8 +154,9 @@ class CircularSinglyLinkedList:
             return None
         
         if self._size == 1:
-            self._head = self._tail = None
+            # saving the tail node before setting it to None
             curr_node = self._tail
+            self._head = self._tail = None
         else:
             curr_node = self._head
             # at the end of this loop, curr_node will be on the previous node to the tail node
@@ -159,10 +164,14 @@ class CircularSinglyLinkedList:
                 curr_node = curr_node.next
             
             # NODE REMOVAL LOGIC: removing the tail node from the list
+            # saving the actual tail node before updating pointers
+            tail_node = self._tail
             # curr_node ->> tail ->> head
             curr_node.next = self._head
             self._tail = curr_node
             self._make_circular()
+            # returning the actual tail node that was removed
+            curr_node = tail_node
         
         curr_node.next = None
         self._size -= 1

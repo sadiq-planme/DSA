@@ -19,7 +19,6 @@
 
 
 class MergeSort:
-    """Top-down recursive merge sort with sentinel values."""
 
     def __init__(self, arr: list[int]):
         self._arr = arr

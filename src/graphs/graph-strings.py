@@ -591,7 +591,7 @@ class DirectedGraph(BaseGraph):
     #                         if iteration == num_nodes - 1:
     #                             # If we can still relax, a negative cycle exists
     #                             return None
-    #         # Early termination optimization: if no relaxation, were done in a single iteration
+    #         # Early termination optimization: if no relaxation, we're done (no negative cycles)
     #         if not relaxed:
     #             break
 
@@ -867,11 +867,12 @@ class UndirectedGraph(BaseGraph):
     #     discovery_time: defaultdict[str, int] = defaultdict(lambda: 0)  
     #     # To store the lowest time of insertion of the nodes
     #     low_dis_time: defaultdict[str, int] = defaultdict(lambda: 0)  
-    #     self.timer: int = 1  # To keep track of the time of insertion of nodes
+    #     timer: int = 1  # To keep track of the time of insertion of nodes
     #     def dfs_helper(current_node: str, parent: str | None):
+    #         nonlocal timer
     #         visited.add(current_node)
-    #         discovery_time[current_node] = low_dis_time[current_node] = self.timer
-    #         self.timer += 1
+    #         discovery_time[current_node] = low_dis_time[current_node] = timer
+    #         timer += 1
     #         for weight, neighbor in self._adjacency_list.get(current_node, []):
     #             if neighbor not in visited:
     #                 dfs_helper(neighbor, current_node)
@@ -918,7 +919,7 @@ class UndirectedGraph(BaseGraph):
     #         for weight, neighbor in self._adjacency_list.get(current_node, []):
     #             if neighbor not in visited:
     #                 dfs_helper(neighbor, current_node)
-    #                 # Upate the lowest time of insertion for the current_node 
+    #                 # Update the lowest time of insertion for the current_node 
     #                 low_dis_time[current_node] = min(low_dis_time[current_node], low_dis_time[neighbor])
     #                 # If the lowest time of insertion of the current_node is found to be greater than the time of insertion of the neighbor and it is not the starting node
     #                 if low_dis_time[neighbor] >= discovery_time[current_node] and parent is not None:
