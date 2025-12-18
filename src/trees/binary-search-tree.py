@@ -22,27 +22,27 @@ class BinarySearchTree:
     def __init__(self):
         self.root: TreeNode | None = None
 
-    def build_bst(self, nodes: list[int]):
+    def build_bst(self, elements: list[int]):
         """
-            Builds a BST from a list of nodes.
+            Builds a BST from a list of elements.
             Args:
-                nodes: The list of nodes to build the BST from.
+                elements: The list of elements to build the BST from.
             Returns:
                 TreeNode: The root of the BST.
             Time Complexity: O(n log n)
             Space Complexity: O(n)
         """
-        def insert(node: TreeNode | None, data: int):
-            if node is None:
-                return TreeNode(data)
-            if data < node.data:
-                node.left = insert(node.left, data)
+        def insert(current_node: TreeNode | None, ele: int):
+            if current_node is None:
+                return TreeNode(ele)
+            if ele < current_node.data:
+                current_node.left = insert(current_node.left, ele)
             else:
-                node.right = insert(node.right, data)
-            return node
+                current_node.right = insert(current_node.right, ele)
+            return current_node
         
-        for node in nodes:
-            self.root = insert(self.root, node)
+        for ele in elements:
+            self.root = insert(self.root, ele)
         
         return self.root
 

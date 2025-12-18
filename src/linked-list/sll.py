@@ -33,7 +33,6 @@ class CircularSinglyLinkedList:
             self._head = new_node
             self._make_circular()
         self._size += 1
-        return True
 
     # tail ->> head   ===>   previous_tail ->> new_node ->> head
     # after this function call, tail will be the new node
@@ -46,28 +45,23 @@ class CircularSinglyLinkedList:
             self._tail = new_node
             self._make_circular()
         self._size += 1
-        return True
 
-    def insert_node_at_position(self, info: int | str, posi: int):
+    def insert_node_at_position(self, info: int | str, posi: int) -> bool:
         """
             Insert a node at the given position (1-indexed).
             Negative positions count from the end.
             Position 0 is treated as position 1 (head).
         """
-        if posi == 0:
-            posi = 1
-        # if posi = -1   ===>   tail ->> head   will become   new_node ->> tail ->> head
-        elif posi < 0:
+        # there is no node at posi == 0. Input is position not index.
+        if  posi == 0 or self._size == 0 or abs(posi) > self._size:
+            return False
+        
+        if posi < 0:
             posi = self._size + posi + 1
         
-        # tail ->> head   ===>  tail ->> new_node ->> previous node to head
-        # after this, head will be the new node
-        if posi <= 1 or self.is_empty():
-            return self.insert_as_head(info)
-        # tail ->> head   ===>   previous node to tail ->> new_node ->> head
-        # after this, tail will be the new node
-        if posi > self._size:
-            return self.insert_as_tail(info)
+        if posi == 1:
+            self.insert_as_head(info)
+            return True
         
         # prev_node ->> curr_node   ===>   prev_node ->> new_node ->> curr_node
         prev_node, curr_node = self._tail, self._head
@@ -104,12 +98,13 @@ class CircularSinglyLinkedList:
         """
             Insert a new node after the first occurrence of target value.
         """
+        if target == self._tail:
+            self.insert_as_tail(info)
+            return True
+        
         _, target_node = self.find(target)
         if target_node is None:
             return False
-        
-        if target_node == self._tail:
-            return self.insert_as_tail(info)
         
         # NODE INSERTION LOGIC: inserting the new node after the target node
         # target_node ->> new_node ->> next_node
@@ -130,18 +125,23 @@ class CircularSinglyLinkedList:
         if self.is_empty():
             return None
         
-        curr_node = self._head
         if self._size == 1:
+            curr_node = self._head
             self._head = self._tail = None
+            
+            self._size = 0
+            curr_node.next = None
+            return curr_node
         else:
             # NODE REMOVAL LOGIC: moving the head pointer to the next node
             # tail ->> head ->> head.next
+            curr_node = self._head
             self._head = self._head.next
             self._make_circular()
-        
-        curr_node.next = None
-        self._size -= 1
-        return curr_node
+            
+            self._size -= 1
+            curr_node.next = None
+            return curr_node
 
     # previous_node_to_tail ->> tail ->> head   ===>   previous_node_to_tail ->> head
     # after this function call, new tail will be the previous node of the tail node
@@ -157,6 +157,9 @@ class CircularSinglyLinkedList:
             # saving the tail node before setting it to None
             curr_node = self._tail
             self._head = self._tail = None
+            curr_node.next = None
+            self._size = 0
+            return curr_node
         else:
             curr_node = self._head
             # at the end of this loop, curr_node will be on the previous node to the tail node
@@ -167,15 +170,12 @@ class CircularSinglyLinkedList:
             # saving the actual tail node before updating pointers
             tail_node = self._tail
             # curr_node ->> tail ->> head
-            curr_node.next = self._head
             self._tail = curr_node
             self._make_circular()
             # returning the actual tail node that was removed
-            curr_node = tail_node
-        
-        curr_node.next = None
-        self._size -= 1
-        return curr_node
+            tail_node.next = None
+            self._size -= 1
+            return tail_node
 
     # prev_node ->> curr_node ->> next_node   ===>   prev_node ->> next_node
     # after this function call, curr_node will be removed from the list
@@ -211,18 +211,16 @@ class CircularSinglyLinkedList:
             Negative positions count from the end.
             Returns the removed node or None if position is invalid.
         """
-        if self.is_empty():
-            return None
+        if self.is_empty() or posi == 0 or abs(posi) > self._size:
+            return False
         
-        if posi < 1:
+        if posi < 0:
             posi = self._size + posi + 1
         
         if posi == 1:
-            return self.remove_head()
+            self.remove_head()    
         elif posi == self._size:
-            return self.remove_tail()
-        elif posi > self._size or posi < 1:
-            return None
+            self.remove_tail()
         else:
             prev_node, curr_node = self._tail, self._head
             # at the end of this loop, curr_node will be on the node user wants to remove
@@ -239,7 +237,8 @@ class CircularSinglyLinkedList:
             # As long as the user holds that one removed node, the entire linked list cannot be garbage collected, creating a massive memory leak.
             curr_node.next = None
             self._size -= 1
-            return curr_node
+            return True
+        return False
 
     # current list: 1 ->> 2 ->> 3 ->> 4 ->> 5 (since circular, 5 ->> 1)   
     # new list    : 1 <<- 2 <<- 3 <<- 4 <<- 5 (since circular, 5 <<- 1) 
@@ -247,19 +246,22 @@ class CircularSinglyLinkedList:
     # FOR SINGLE ITERATION: prev ->> curr_node ->> next   ===>   prev <<- curr_node  next
     # OBSERVE THERE IS NO POINTER BETWEEN CURRENT NODE & NEXT NODE
     def reverse_in_place(self):
-        if self._size > 1:
+        if self._size <= 1:
+            return
+        if self._size > 2:
             # initializing prev with tail because of the circular nature of the list
             prev_node, curr_node, next_node = self._tail, self._head, self._head.next
             
             # at the end of this loop, curr_node will be on the head node of the new list
-            for _ in range(self._size):
+            for _ in range(self._size - 1):
                 # REVERSAL LOGIC: curr_node will point to the previous node instead of the next node
                 curr_node.next = prev_node
                 # moving the pointers forward
                 prev_node, curr_node, next_node = curr_node, next_node, next_node.next
             
-            # updating the head and tail
-            self._head, self._tail = self._tail, self._head
+        # updating the head and tail for self._size >= 2
+        self._head, self._tail = self._tail, self._head
+        self._make_circular()
 
     def is_empty(self):
         return self._size == 0

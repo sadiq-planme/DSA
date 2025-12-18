@@ -15,7 +15,6 @@ class BaseGraph:
         self.graph_type: GraphType = graph_type
         self._adjacency_list: defaultdict[str, list[tuple[float, str]]] = defaultdict(list)
         self._nodes: set[str] = set()
-        self.edges: list[tuple[float, str, str]] = []
 
     def add_edge(self, source: str, destination: str, weight: float = 1.0):
         """
@@ -162,26 +161,9 @@ class BaseGraph:
         return parent, graph_components
 
     # ********* SSSP Methods *********
-    def _reconstruct_path(self, source_node: str, destination_node: str, visited: set[str], parent: dict[str, str | None]):
-        """
-            Helper method to reconstruct path from source to destination using parent pointers.
-            
-            Args:
-                source_node: Source node
-                destination_node: Destination node
-                visited: Set of visited nodes
-                parent: Dictionary mapping each node to its parent
-            
-            Returns:
-                list: Path from source to destination, empty list if no path exists
-            
-            Time Complexity: O(V) worst case
-            Space Complexity: O(V)
-            
-            Edge Cases: Destination not reachable, source equals destination, invalid parent pointers
-        """
+    def _reconstruct_path(self, source_node: str, destination_node: str, parent: dict[str, str | None]):
         # If destination is not reachable from source
-        if destination_node not in visited:
+        if parent[destination_node] == -1:
             return []
         
         # Reconstruct path by following parent pointers
@@ -194,59 +176,59 @@ class BaseGraph:
         path.reverse()
         return path
 
-    def sssp_bfs(self, source_node: str, destination_node: str):
-        """
-            Finds shortest path using BFS. Works only for unweighted or equally weighted graphs.
-            BFS guarantees shortest path in unweighted graphs by exploring level by level.
+    # def sssp_bfs(self, source_node: str, destination_node: str):
+    #     """
+    #         Finds shortest path using BFS. Works only for unweighted or equally weighted graphs.
+    #         BFS guarantees shortest path in unweighted graphs by exploring level by level.
             
-            Args:
-                source_node: Starting node
-                destination_node: Target node
+    #         Args:
+    #             source_node: Starting node
+    #             destination_node: Target node
             
-            Returns:
-                tuple: (shortest_path, shortest_path_distance) - path as list of nodes and total distance,
-                ([], math.inf) if no path exists
+    #         Returns:
+    #             tuple: (shortest_path, shortest_path_distance) - path as list of nodes and total distance,
+    #             ([], math.inf) if no path exists
             
-            Time Complexity: O(V + E)
-            Space Complexity: O(V)
+    #         Time Complexity: O(V + E)
+    #         Space Complexity: O(V)
             
-            Edge Cases: Source equals destination, no path exists, disconnected graph, only works for equal weights
-        """
-        if source_node == destination_node:
-            return [source_node], 0.0
+    #         Edge Cases: Source equals destination, no path exists, disconnected graph, only works for equal weights
+    #     """
+    #     if source_node == destination_node:
+    #         return [source_node], 0.0
 
-        visited: set[str] = set()
-        parent: dict[str, str | None] = {}
-        queue: deque[str] = deque()
+    #     visited: set[str] = set()
+    #     parent: dict[str, str | None] = {}
+    #     queue: deque[str] = deque()
 
-        # Start BFS traversal from source node
-        visited.add(source_node)  # O(1) amortized
-        parent[source_node] = None 
-        queue.append(source_node)
+    #     # Start BFS traversal from source node
+    #     visited.add(source_node)  # O(1) amortized
+    #     parent[source_node] = None 
+    #     queue.append(source_node)
         
-        while queue:
-            current_node = queue.popleft()
-            # Early termination if destination is reached
-            if current_node == destination_node:
-                break
-            # BFS traversal on current_node started
-            for weight, neighbor in self._adjacency_list.get(current_node, []): # O(degree(current_node))
-                if neighbor not in visited: 
-                    visited.add(neighbor)
-                    parent[neighbor] = current_node 
-                    queue.append(neighbor)
-            # BFS traversal on current_node completed
+    #     while queue:
+    #         current_node = queue.popleft()
+    #         # Early termination if destination is reached
+    #         if current_node == destination_node:
+    #             break
+    #         # BFS traversal on current_node started
+    #         for weight, neighbor in self._adjacency_list.get(current_node, []): # O(degree(current_node))
+    #             if neighbor not in visited: 
+    #                 visited.add(neighbor)
+    #                 parent[neighbor] = current_node 
+    #                 queue.append(neighbor)
+    #         # BFS traversal on current_node completed
         
-        # Reconstruct path using helper method
-        shortest_path: list[str] = self._reconstruct_path(source_node, destination_node, visited, parent)
-        if not shortest_path:
-            return [], math.inf
+    #     # Reconstruct path using helper method
+    #     shortest_path: list[str] = self._reconstruct_path(source_node, destination_node, visited, parent)
+    #     if not shortest_path:
+    #         return [], math.inf
         
-        # For unweighted graphs, distance is the number of edges (path length - 1)
-        # BFS works for unweighted graphs, so we don't need to multiply by weight
-        return shortest_path, float(len(shortest_path) - 1)
+    #     # For unweighted graphs, distance is the number of edges (path length - 1)
+    #     # BFS works for unweighted graphs, so we don't need to multiply by weight
+    #     return shortest_path, float(len(shortest_path) - 1)
 
-    def sssp_dijkstra(self, source_node: str, destination_node: str):
+    def sssp_dijkstra(self, source_node: str, destination_node: str) -> tuple[list[int], int]:
         """
             Finds shortest path using Dijkstra's algorithm. Greedy algorithm that always processes closest unvisited node first.
             Only works with non-negative edge weights. Uses priority queue for efficient node selection.
@@ -264,43 +246,31 @@ class BaseGraph:
             
             Edge Cases: Source equals destination, no path exists, negative weights (incorrect results), disconnected graph
         """
-        if source_node == destination_node:
-            return [source_node], 0.0
-
-        visited: set[str] = set()  # grows to O(V)
+        # If destination is not reachable from source
+        if destination_node == source_node:
+            return [source_node], 0
+        
         parent: dict[str, str | None] = {}  # grows to O(V)
-        distance: defaultdict[str, float] = defaultdict(lambda: math.inf) # grows to O(V)
+        distances: defaultdict[str, float] = defaultdict(lambda: math.inf) # grows to O(V)
         priority_queue: list[tuple[float, str]] = []  # can grow to O(V + E) worst case
         
         parent[source_node] = None  
-        distance[source_node] = 0  
+        distances[source_node] = 0  
         heapq.heappush(priority_queue, (0, source_node))  # O(log V)
 
         while priority_queue:  # O(V) iterations (each node processed at most once)
             current_distance, current_node = heapq.heappop(priority_queue)  # O(log V)
-            
-            # Skip if already processed (redundant entry in priority queue)
-            if current_node not in visited:  # O(1) average case
-                # Mark node as visited after popping from queue (before processing)
-                visited.add(current_node)
-                # Early termination optimization if destination is reached
-                if current_node == destination_node:  # Early termination optimization
-                    break
-                # Relax edges from current node - O(degree(current_node))
-                for weight, neighbor in self._adjacency_list.get(current_node, []):  # O(degree(current_node))
-                    if neighbor not in visited:  # O(1) average case
-                        new_distance = current_distance + weight
-                        if new_distance < distance[neighbor]:
-                            parent[neighbor] = current_node
-                            distance[neighbor] = new_distance
-                            heapq.heappush(priority_queue, (new_distance, neighbor))  # O(log V)
-        
+            # Relax edges from current node - O(degree(current_node))
+            for neighbor_distance, neighbor in self._adjacency_list.get(current_node, []):
+                new_distance = current_distance + neighbor_distance
+                if new_distance < distances[neighbor]:
+                    parent[neighbor] = current_node
+                    distances[neighbor] = new_distance
+                    heapq.heappush(priority_queue, (new_distance, neighbor))  # O(log V)
         # Reconstruct path using helper method - O(path_length) = O(V) worst case
-        shortest_path: list[str] = self._reconstruct_path(source_node, destination_node, visited, parent)  # O(V)
-        if not shortest_path:  # O(1)
-            return [], math.inf
+        shortest_path: list[str] = self._reconstruct_path(source_node, destination_node, parent)  # O(V)
 
-        return shortest_path, distance[destination_node]  # O(1)
+        return shortest_path, distances[destination_node]  # O(1)
 
     # # RARELY ASKED ********* APSP Methods *********
     # def floyd_warshall(self):
@@ -491,118 +461,118 @@ class DirectedGraph(BaseGraph):
         
         return None
 
-    # # RARELY ASKED
-    # def kosaraju(self):
-    #     """
-    #         Finds all strongly connected components (SCCs) using Kosaraju's algorithm. Two-pass DFS approach:
-    #         first on original graph to get finish order, then on reversed graph in reverse finish order.
-    #         An SCC is a maximal set where every vertex is reachable from every other vertex.
+#     # RARELY ASKED
+#     def kosaraju(self):
+#         """
+#             Finds all strongly connected components (SCCs) using Kosaraju's algorithm. Two-pass DFS approach:
+#             first on original graph to get finish order, then on reversed graph in reverse finish order.
+#             An SCC is a maximal set where every vertex is reachable from every other vertex.
             
-    #         Returns:
-    #             list: List of lists, where each inner list contains nodes in one SCC
+#             Returns:
+#                 list: List of lists, where each inner list contains nodes in one SCC
             
-    #         Time Complexity: O(V + E)
-    #         Space Complexity: O(V + E)
+#             Time Complexity: O(V + E)
+#             Space Complexity: O(V + E)
             
-    #         Edge Cases: Empty graph, no SCCs (each node is its own SCC), single large SCC, disconnected graph
-    #     """
-    #     # 1. Create the reversed graph
-    #     rev_adj_lst: defaultdict[str, list[tuple[float, str]]] = defaultdict(list)
-    #     for node in self._nodes:
-    #         for weight, neighbor in self._adjacency_list.get(node, []):
-    #             rev_adj_lst[neighbor].append((weight, node))
+#             Edge Cases: Empty graph, no SCCs (each node is its own SCC), single large SCC, disconnected graph
+#         """
+#         # 1. Create the reversed graph
+#         rev_adj_lst: defaultdict[str, list[tuple[float, str]]] = defaultdict(list)
+#         for node in self._nodes:
+#             for weight, neighbor in self._adjacency_list.get(node, []):
+#                 rev_adj_lst[neighbor].append((weight, node))
         
-    #     # 2. First DFS (on original graph) to get finish order
-    #     visited: set[str] = set()
-    #     finish_order: list[str] = []
+#         # 2. First DFS (on original graph) to get finish order
+#         visited: set[str] = set()
+#         finish_order: list[str] = []
 
-    #     def dfs_1(current_node: str):
-    #         visited.add(current_node)
-    #         for weight, neighbor in self._adjacency_list.get(current_node, []):
-    #             if neighbor not in visited:
-    #                 dfs_1(neighbor)
-    #         finish_order.append(current_node)  # Post order Traversal
+#         def dfs_1(current_node: str):
+#             visited.add(current_node)
+#             for weight, neighbor in self._adjacency_list.get(current_node, []):
+#                 if neighbor not in visited:
+#                     dfs_1(neighbor)
+#             finish_order.append(current_node)  # Post order Traversal
 
-    #     # Run the first pass to get the finish order => O(V + E) TC
-    #     for start_node in self._nodes:
-    #         if start_node not in visited:
-    #             dfs_1(start_node)
+#         # Run the first pass to get the finish order => O(V + E) TC
+#         for start_node in self._nodes:
+#             if start_node not in visited:
+#                 dfs_1(start_node)
         
-    #     # 3. Second DFS (on reversed graph) in reverse finish order => O(V + E) TC
-    #     visited.clear()
-    #     strongly_connected_components: list[list[str]] = []
+#         # 3. Second DFS (on reversed graph) in reverse finish order => O(V + E) TC
+#         visited.clear()
+#         strongly_connected_components: list[list[str]] = []
 
-    #     def dfs_2(current_node: str):
-    #         visited.add(current_node)
-    #         strongly_connected_components[-1].append(current_node)
-    #         for weight, neighbor in rev_adj_lst.get(current_node, []):
-    #             if neighbor not in visited:
-    #                 dfs_2(neighbor)
+#         def dfs_2(current_node: str):
+#             visited.add(current_node)
+#             strongly_connected_components[-1].append(current_node)
+#             for weight, neighbor in rev_adj_lst.get(current_node, []):
+#                 if neighbor not in visited:
+#                     dfs_2(neighbor)
 
-    #     for start_node in finish_order[::-1]:
-    #         if start_node not in visited:
-    #             strongly_connected_components.append([])
-    #             dfs_2(start_node)
+#         for start_node in finish_order[::-1]:
+#             if start_node not in visited:
+#                 strongly_connected_components.append([])
+#                 dfs_2(start_node)
 
-    #     return strongly_connected_components
+#         return strongly_connected_components
 
-    # # RARELY ASKED ********* SSSP Methods *********
-    # def bellman_ford(self, source_node: str, destination_node: str):
-    #     """
-    #         Finds shortest path using Bellman-Ford algorithm. Relaxes all edges V-1 times. Can handle negative weights
-    #         and detects negative cycles. Works with edge list or adjacency list representation.
+#     # RARELY ASKED ********* SSSP Methods *********
+#     def bellman_ford(self, source_node: str, destination_node: str):
+#         """
+#             Finds shortest path using Bellman-Ford algorithm. Relaxes all edges V-1 times. Can handle negative weights
+#             and detects negative cycles. Works with edge list or adjacency list representation.
             
-    #         Args:
-    #             source_node: Starting node
-    #             destination_node: Target node
+#             Args:
+#                 source_node: Starting node
+#                 destination_node: Target node
             
-    #         Returns:
-    #             tuple: (shortest_path, shortest_path_distance) if path exists and no negative cycle,
-    #             ([], math.inf) if no path exists, None if negative cycle detected
+#             Returns:
+#                 tuple: (shortest_path, shortest_path_distance) if path exists and no negative cycle,
+#                 ([], math.inf) if no path exists, None if negative cycle detected
             
-    #         Time Complexity: O(V * E)
-    #         Space Complexity: O(V)
+#             Time Complexity: O(V * E)
+#             Space Complexity: O(V)
             
-    #         Edge Cases: Source equals destination, no path exists, negative cycle reachable from source,
-    #         disconnected graph, early termination when no relaxation occurs
-    #     """
-    #     if source_node == destination_node:
-    #         return [source_node], 0.0
+#             Edge Cases: Source equals destination, no path exists, negative cycle reachable from source,
+#             disconnected graph, early termination when no relaxation occurs
+#         """
+#         if source_node == destination_node:
+#             return [source_node], 0.0
 
-    #     parent: dict[str, str | None] = {}  # O(1) space, grows to O(V)
-    #     distance: defaultdict[str, float] = defaultdict(lambda: math.inf)  # O(1) space, grows to O(V)
+#         parent: dict[str, str | None] = {}  # O(1) space, grows to O(V)
+#         distance: defaultdict[str, float] = defaultdict(lambda: math.inf)  # O(1) space, grows to O(V)
 
-    #     distance[source_node] = 0  
-    #     parent[source_node] = None # None represents no parent
+#         distance[source_node] = 0  
+#         parent[source_node] = None # None represents no parent
 
-    #     # Bellman-Ford algorithm: relax edges V-1 times - O(V * E)
-    #     # Key insight: After V-1 iterations, all shortest paths should be found
-    #     num_nodes = len(self._nodes)  # O(1)
-    #     for iteration in range(num_nodes):  # O(V) iterations
-    #         relaxed = False  
-    #         for node in self._nodes:  # O(V) iterations per outer iteration
-    #             if distance[node] != math.inf:
-    #                 for weight, neighbor in self._adjacency_list.get(node, []):  # O(degree(node)) = O(E) total
-    #                     new_distance = distance[node] + weight 
-    #                     if new_distance < distance[neighbor]:  
-    #                         distance[neighbor] = new_distance 
-    #                         parent[neighbor] = node 
-    #                         relaxed = True 
-    #                         if iteration == num_nodes - 1:
-    #                             # If we can still relax, a negative cycle exists
-    #                             return None
-    #         # Early termination optimization: if no relaxation, we're done (no negative cycles)
-    #         if not relaxed:
-    #             break
+#         # Bellman-Ford algorithm: relax edges V-1 times - O(V * E)
+#         # Key insight: After V-1 iterations, all shortest paths should be found
+#         num_nodes = len(self._nodes)  # O(1)
+#         for iteration in range(num_nodes):  # O(V) iterations
+#             relaxed = False  
+#             for node in self._nodes:  # O(V) iterations per outer iteration
+#                 if distance[node] != math.inf:
+#                     for weight, neighbor in self._adjacency_list.get(node, []):  # O(degree(node)) = O(E) total
+#                         new_distance = distance[node] + weight 
+#                         if new_distance < distance[neighbor]:  
+#                             distance[neighbor] = new_distance 
+#                             parent[neighbor] = node 
+#                             relaxed = True 
+#                             if iteration == num_nodes - 1:
+#                                 # If we can still relax, a negative cycle exists
+#                                 return None
+#             # Early termination optimization: if no relaxation, we're done (no negative cycles)
+#             if not relaxed:
+#                 break
 
-    #     # Reconstruct path using helper method - O(V) worst case
-    #     # Create visited set from nodes with finite distance (reachable nodes)
-    #     visited = {node for node in distance if distance[node] != math.inf}
-    #     shortest_path = self._reconstruct_path(source_node, destination_node, visited, parent)  # O(V)
-    #     if not shortest_path:
-    #         return [], math.inf
+#         # Reconstruct path using helper method - O(V) worst case
+#         # Create visited set from nodes with finite distance (reachable nodes)
+#         visited = {node for node in distance if distance[node] != math.inf}
+#         shortest_path = self._reconstruct_path(source_node, destination_node, visited, parent)  # O(V)
+#         if not shortest_path:
+#             return [], math.inf
 
-    #     return shortest_path, distance[destination_node]
+#         return shortest_path, distance[destination_node]
 
 
 # class DisjointSet:

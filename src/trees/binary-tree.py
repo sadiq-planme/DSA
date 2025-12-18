@@ -148,7 +148,7 @@ class BinaryTree:
         post_order_traversal_helper(self.root)
         return result
 
-    def height_of_tree(self): # max depth of the tree
+    def height_of_tree(self):  # max depth of the tree
         """
             Calculates the height of the tree.
             Returns:

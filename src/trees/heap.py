@@ -8,64 +8,58 @@ import math
 class MaxHeap:
 
     def __init__(self):
-        self.heap = []
+        self._heap: list[int] = []
+        self._size: int = 0
 
     # ********* Primary Methods *********
     def push(self, data: int):
-        """Add an element to the max heap"""
-        self.heap.append(data)
-        self._heapify_up(len(self.heap) - 1)
+        self._heap.append(data)
+        self._size += 1
+        self._heapify_up(self._size - 1)
 
-    def pop(self):
-        """Remove and return the maximum element from the heap"""
-        if self.empty():
+    def pop(self) -> int | None:
+        if self._size == 0:
             return None
-        self.heap[0], self.heap[-1] = self.heap[-1], self.heap[0]
-        max_val = self.heap.pop()
-        if not self.empty():
-            self._heapify_down(0, len(self.heap))
-        return max_val
+        self._heap[0], self._heap[-1] = self._heap[-1], self._heap[0]
+        self._size -= 1
+        self._heapify_down(0)
+        return self._heap.pop()
 
-    def top(self):
-        """Return the maximum element without removing it"""
-        if self.empty():
+    def top(self) -> int | None:
+        if self._size == 0:
             return None
-        return self.heap[0]
+        return self._heap[0]
 
-    def build(self, data: list[int]):
-        """Build a max heap from an array in O(n) time"""
-        self.heap = data
-        for i in range((len(self.heap) >> 1) - 1, -1, -1):  # range(len(self.heap) // 2 - 1, -1, -1)
-            self._heapify_down(i, len(self.heap))
-
-    def empty(self):
-        """Check if the heap is empty"""
-        return len(self.heap) == 0
+    def build(self, data: list[int]) -> None:
+        if not data:
+            return
+        self._heap = data
+        self._size = len(data)
+        for internal_node_index in range((self._size - 2) >> 1, -1, -1):  # range((self._size - 2) // 2, -1, -1)
+            self._heapify_down(internal_node_index)
 
     # ********* Helper Methods *********
     def _heapify_up(self, child_index: int):
         """Bubble up the element at child_index to maintain max heap property"""
-        if child_index == 0:
-            return
-        parent_index = (child_index - 1) >> 1
-        if self.heap[child_index] > self.heap[parent_index]:
-            self.heap[child_index], self.heap[parent_index] = self.heap[parent_index], self.heap[child_index]
+        parent_index = (child_index - 1) >> 1  # (child_index - 1) // 2
+        if (parent_index > 0) and (self._heap[child_index] > self._heap[parent_index]):
+            self._heap[child_index], self._heap[parent_index] = self._heap[parent_index], self._heap[child_index]
             self._heapify_up(parent_index)
 
-    def _heapify_down(self, parent_index: int, size: int):
+    def _heapify_down(self, parent_index: int):
         """Bubble down the element at parent_index to maintain max heap property"""
-        left_child_index = 2 * parent_index + 1
-        right_child_index = 2 * parent_index + 2
+        left_child_index = (parent_index << 1) + 1
+        right_child_index = (parent_index << 1) + 2
         largest = parent_index
         
-        if left_child_index < size and self.heap[left_child_index] > self.heap[largest]:
+        if (left_child_index < self._size) and (self._heap[left_child_index] > self._heap[largest]):
             largest = left_child_index
-        if right_child_index < size and self.heap[right_child_index] > self.heap[largest]:
+        if (right_child_index < self._size) and (self._heap[right_child_index] > self._heap[largest]):
             largest = right_child_index
         
         if largest != parent_index:
-            self.heap[parent_index], self.heap[largest] = self.heap[largest], self.heap[parent_index]
-            self._heapify_down(largest, size)
+            self._heap[parent_index], self._heap[largest] = self._heap[largest], self._heap[parent_index]
+            self._heapify_down(largest)
 
     # ********* Secondary Methods *********
     def sort(self):
@@ -76,17 +70,12 @@ class MaxHeap:
             Time Complexity: O(n log n)
             Space Complexity: O(1)
         """
-        size = len(self.heap)
-        while size > 1:
-            self.heap[0], self.heap[size - 1] = self.heap[size - 1], self.heap[0]
-            size -= 1
-            self._heapify_down(0, size)
-        return self.heap
-
-    def __len__(self):
-        """Return the number of elements in the heap"""
-        return len(self.heap)
-
+        while self._size > 1:
+            self._heap[0], self._heap[self._size - 1] = self._heap[self._size - 1], self._heap[0]  # MISTAKE: self._heap[self._size - 1]  != self._heap[-1]
+            self._size -= 1
+            self._heapify_down(0)
+        return self._heap
+    
     # ********* Problems *********
     def k_th_smallest(self, k: int, arr: list[int]):
         """
@@ -282,64 +271,6 @@ class LinkedListNode:
 
 class MinHeap:
 
-    def __init__(self):
-        self.heap = []
-
-    # ********* Primary Methods *********
-    def push(self, data: int):
-        """Add an element to the min heap"""
-        self.heap.append(data)
-        self._heapify_up(len(self.heap) - 1)
-
-    def pop(self):
-        """Remove and return the minimum element from the heap"""
-        if self.empty():
-            return None
-        self.heap[0], self.heap[-1] = self.heap[-1], self.heap[0]
-        min_val = self.heap.pop()
-        if not self.empty():
-            self._heapify_down(0, len(self.heap))
-        return min_val
-
-    def top(self):
-        """Return the minimum element without removing it"""
-        if self.empty():
-            return None
-        return self.heap[0]
-
-    def build(self, data: list[int]):
-        """Build a max heap from an array in O(n) time"""
-        self.heap = data
-        for i in range((len(self.heap) >> 1) - 1, -1, -1):
-            self._heapify_down(i, len(self.heap))
-
-    def empty(self):
-        """Check if the heap is empty"""
-        return len(self.heap) == 0
-
-    # ********* Helper Methods *********
-    def _heapify_up(self, child_index: int):
-        """Bubble up the element at child_index to maintain min heap property"""
-        if child_index == 0:
-            return
-        parent_index = (child_index - 1) >> 1
-        if self.heap[child_index] < self.heap[parent_index]:
-            self.heap[child_index], self.heap[parent_index] = self.heap[parent_index], self.heap[child_index]
-            self._heapify_up(parent_index)
-
-    def _heapify_down(self, parent_index: int, size: int):
-        """Bubble down the element at parent_index to maintain min heap property"""
-        left_child_index = 2 * parent_index + 1
-        right_child_index = 2 * parent_index + 2
-        smallest = parent_index
-        if left_child_index < size and self.heap[left_child_index] < self.heap[smallest]:
-            smallest = left_child_index
-        if right_child_index < size and self.heap[right_child_index] < self.heap[smallest]:
-            smallest = right_child_index
-        if smallest != parent_index:
-            self.heap[parent_index], self.heap[smallest] = self.heap[smallest], self.heap[parent_index]
-            self._heapify_down(smallest, size)
-
     # ********* Problems *********
     def k_th_largest(self, k: int, arr: list[int]):
         """
@@ -481,7 +412,7 @@ class MaxHeapWithBinaryTree:
         self.root: HeapTreeNode | None = None
 
     # ********* Primary Methods *********
-    def push(self, val: int):
+    def push(self, val: int):  # O(n + log n)
         """Add an element to the max heap using binary tree structure"""
         if self.root is None:
             self.root = HeapTreeNode(val)
@@ -492,27 +423,25 @@ class MaxHeapWithBinaryTree:
                 current_node = queue.popleft()
                 # Try to insert left
                 if current_node.left is None:
-                    current_node.left = HeapTreeNode(val)
-                    current_node.left.parent = current_node
+                    current_node.left = HeapTreeNode(val, parent=current_node)
                     self._heapify_up(current_node.left)
                     break
                 # Try to insert right
                 if current_node.right is None:
-                    current_node.right = HeapTreeNode(val)
-                    current_node.right.parent = current_node
+                    current_node.right = HeapTreeNode(val, parent=current_node)
                     self._heapify_up(current_node.right)
                     break
                 # Continue to next level
                 queue.append(current_node.left)
                 queue.append(current_node.right)
 
-    def _heapify_up(self, node: HeapTreeNode):
+    def _heapify_up(self, node: HeapTreeNode):  # O(log n)
         """Bubble up the node to maintain max heap property"""
         while node.parent is not None and node.val > node.parent.val:
             node.val, node.parent.val = node.parent.val, node.val
             node = node.parent
 
-    def pop(self):
+    def pop(self):  # O(n + log n)
         """Remove and return the maximum element from the heap"""
         if self.root is None:
             return None
@@ -547,7 +476,7 @@ class MaxHeapWithBinaryTree:
         self._heapify_down(self.root)
         return max_val
 
-    def _heapify_down(self, node: HeapTreeNode | None):
+    def _heapify_down(self, node: HeapTreeNode | None):  # O(log n)
         """Bubble down the node to maintain max heap property"""
         while node and node.left is not None:
             largest = node
@@ -564,23 +493,13 @@ class MaxHeapWithBinaryTree:
             else:
                 break
 
-    def top(self):
-        """Return the maximum element without removing it"""
-        if self.root is None:
-            return None
-        return self.root.val
-
-    def build(self, vals: list[int]):
+    def build(self, vals: list[int]):  # O(n^2)
         """Build a max heap from a list of values"""
         for val in vals:
             self.push(val)
 
-    def empty(self):
-        """Check if the heap is empty"""
-        return self.root is None
-
     # ********* Problems *********
-    def is_heap(self):
+    def is_heap(self):  # O(n)
         """
             Checks if the binary tree maintains max heap property.
             Returns:

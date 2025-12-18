@@ -5,7 +5,6 @@ from enum import Enum
 from collections import deque
 
 
-
 class GraphType(Enum):
     DIRECTED = "directed"
     UNDIRECTED = "undirected"
@@ -14,9 +13,8 @@ class GraphType(Enum):
 class BaseGraph:
 
     def __init__(self, graph_type: GraphType):
-        self.graph_type: GraphType = graph_type
         self.V: int = 0
-        self.edges: list[tuple[float, int, int]] = []
+        self.graph_type: GraphType = graph_type
 
     # ********* Graph Representation Based Methods *********
     def build_graph_from_matrix(self, adjacency_matrix: list[list[float]]):
@@ -48,14 +46,16 @@ class BaseGraph:
         if self.graph_type == GraphType.UNDIRECTED:
             for i in range(self.V): # O(V^2 / 2) TC, O(V + E) SC
                 for j in range(i + 1, self.V):
-                    if adjacency_matrix[i][j] != math.inf:
-                        self._adjacency_list[i].append((adjacency_matrix[i][j], j))
-                        self._adjacency_list[j].append((adjacency_matrix[i][j], i))
+                    if adjacency_matrix[i][j] != math.inf and i != j:
+                        weight = adjacency_matrix[i][j]
+                        self._adjacency_list[i].append((weight, j))
+                        self._adjacency_list[j].append((weight, i))
         else:
             for i in range(self.V): # O(V^2) TC, O(V + E) SC
                 for j in range(self.V):
                     if adjacency_matrix[i][j] != math.inf and i != j:
-                        self._adjacency_list[i].append((adjacency_matrix[i][j], j)) 
+                        weight = adjacency_matrix[i][j]
+                        self._adjacency_list[i].append((weight, j)) 
 
     # ********* Graph Traversals *********
     def bfs(self):
@@ -184,9 +184,9 @@ class BaseGraph:
     #     return parent, connected_components
 
     # ********* SSSP Methods *********
-    def _reconstruct_path(self, source_node: int, destination_node: int, visited: list[bool], parent: list[int]):
+    def _reconstruct_path(self, source_node: int, destination_node: int, parent: list[int]):
         # If destination is not reachable from source
-        if not visited[destination_node]:
+        if parent[destination_node] == -1:
             return []
         
         # Reconstruct path by following parent pointers
@@ -199,63 +199,63 @@ class BaseGraph:
         path.reverse()
         return path
 
-    def sssp_bfs(self, source_node: int, destination_node: int):
-        """
-            Finds shortest path in unweighted or equally weighted graphs using BFS. BFS guarantees shortest path by exploring level by level.
+    # def sssp_bfs(self, source_node: int, destination_node: int):
+    #     """
+    #         Finds shortest path in unweighted or equally weighted graphs using BFS. BFS guarantees shortest path by exploring level by level.
 
-            Args:
-                source_node: Starting node
-                destination_node: Target node
+    #         Args:
+    #             source_node: Starting node
+    #             destination_node: Target node
                 
-            Returns:
-                tuple: (shortest_path, shortest_path_distance) or ([], math.inf) if no path exists
+    #         Returns:
+    #             tuple: (shortest_path, shortest_path_distance) or ([], math.inf) if no path exists
 
-            Time Complexity: O(V + E)
-            Space Complexity: O(V)
+    #         Time Complexity: O(V + E)
+    #         Space Complexity: O(V)
 
-            Edge Cases:
-                - Source equals destination (returns [source], 0)
-                - No path exists (returns [], math.inf)
-                - Graph with negative weights (incorrect results, use Dijkstra/Bellman-Ford)
-                - Unequal edge weights (incorrect results, use Dijkstra)
-        """
-        if source_node == destination_node:
-            return [source_node], 0.0
+    #         Edge Cases:
+    #             - Source equals destination (returns [source], 0)
+    #             - No path exists (returns [], math.inf)
+    #             - Graph with negative weights (incorrect results, use Dijkstra/Bellman-Ford)
+    #             - Unequal edge weights (incorrect results, use Dijkstra)
+    #     """
+    #     if source_node == destination_node:
+    #         return [source_node], 0.0
 
-        visited: list[bool] = [False] * self.V
-        parent: list[int] = [-1] * self.V
-        queue: deque[int] = deque()
+    #     visited: list[bool] = [False] * self.V
+    #     parent: list[int] = [-1] * self.V
+    #     queue: deque[int] = deque()
 
-        # Start BFS traversal from source node
-        visited[source_node] = True 
-        parent[source_node] = -1 
-        queue.append(source_node)
+    #     # Start BFS traversal from source node
+    #     visited[source_node] = True 
+    #     parent[source_node] = -1 
+    #     queue.append(source_node)
         
-        while queue:
-            current_node = queue.popleft()
-            # Early termination if destination is reached
-            if current_node == destination_node:
-                break
-            # BFS traversal on current_node started
-            for weight, neighbor in self._adjacency_list[current_node]: # O(degree(current_node))
-                if not visited[neighbor]: 
-                    visited[neighbor] = True # node visited but not traversed yet
-                    parent[neighbor] = current_node 
-                    queue.append(neighbor)
-            # BFS traversal on current_node completed
+    #     while queue:
+    #         current_node = queue.popleft()
+    #         # Early termination if destination is reached
+    #         if current_node == destination_node:
+    #             break
+    #         # BFS traversal on current_node started
+    #         for weight, neighbor in self._adjacency_list[current_node]: # O(degree(current_node))
+    #             if not visited[neighbor]: 
+    #                 visited[neighbor] = True # node visited but not traversed yet
+    #                 parent[neighbor] = current_node 
+    #                 queue.append(neighbor)
+    #         # BFS traversal on current_node completed
         
-        # Reconstruct path using helper method
-        shortest_path = self._reconstruct_path(source_node, destination_node, visited, parent)
-        if not shortest_path:
-            return [], math.inf
+    #     # Reconstruct path using helper method
+    #     shortest_path = self._reconstruct_path(source_node, destination_node, visited, parent)
+    #     if not shortest_path:
+    #         return [], math.inf
         
-        # For unweighted graphs, distance = number of edges = len(path) - 1
-        # For equally weighted graphs, we need to get the weight from an edge
-        # Since BFS doesn't track edge weights, we'll use path length - 1 (assumes weight 1 per edge)
-        # For actual weighted graphs, use Dijkstra's algorithm
-        return shortest_path, len(shortest_path) - 1
+    #     # For unweighted graphs, distance = number of edges = len(path) - 1
+    #     # For equally weighted graphs, we need to get the weight from an edge
+    #     # Since BFS doesn't track edge weights, we'll use path length - 1 (assumes weight 1 per edge)
+    #     # For actual weighted graphs, use Dijkstra's algorithm
+    #     return shortest_path, len(shortest_path) - 1
 
-    def sssp_dijkstra(self, source_node: int, destination_node: int):
+    def sssp_dijkstra(self, source_node: int, destination_node: int) -> tuple[list[int], int]:
         """
             Finds shortest path using Dijkstra's algorithm. Greedy algorithm that processes closest unvisited node first using priority queue. Works only with non-negative edge weights.
 
@@ -275,43 +275,31 @@ class BaseGraph:
                 - Negative edge weights (incorrect results, use Bellman-Ford)
                 - Disconnected graph (handles correctly)
         """
-        if source_node == destination_node:
-            return [source_node], 0.0
-
-        visited: list[bool] = [False] * self.V
-        parent: list[int] = [-1] * self.V
-        distance: list[float] = [math.inf] * self.V
-        priority_queue: list[tuple[float, int]] = []
+        # If destination is not reachable from source
+        if destination_node == source_node:
+            return [source_node], 0
         
-        parent[source_node] = -1  
-        distance[source_node] = 0  
+        parent: list[int] = [-1] * self.V
+        distances: list[int] = [int(1e9)] * self.V
+        priority_queue: list[tuple[float, int]] = []
+
+        parent[source_node] = -1
+        distances[source_node] = 0
         heapq.heappush(priority_queue, (0, source_node))  # O(log V)
 
         while priority_queue:  # O(V) iterations (each node processed at most once)
             current_distance, current_node = heapq.heappop(priority_queue)  # O(log V)
-            
-            # Skip if already processed (redundant entry in priority queue)
-            if not visited[current_node]:  # O(1)
-                # Mark node as visited after popping from queue (before processing)
-                visited[current_node] = True
-                # Early termination optimization if destination is reached
-                if current_node == destination_node:
-                    break
-                # Relax edges from current node - O(degree(current_node))
-                for weight, neighbor in self._adjacency_list[current_node]:  # O(degree(current_node))
-                    if not visited[neighbor]:  # O(1)
-                        new_distance = current_distance + weight
-                        if new_distance < distance[neighbor]:
-                            parent[neighbor] = current_node
-                            distance[neighbor] = new_distance
-                            heapq.heappush(priority_queue, (new_distance, neighbor))  # O(log V)
-        
+            # Relax edges from current node - O(degree(current_node))
+            for neighbor_distance, neighbor in self._adjacency_list[current_node]:
+                new_distance = current_distance + neighbor_distance
+                if new_distance < distances[neighbor]:
+                    parent[neighbor] = current_node
+                    distances[neighbor] = new_distance
+                    heapq.heappush(priority_queue, (new_distance, neighbor))  # O(log V)
         # Reconstruct path using helper method - O(path_length) = O(V) worst case
-        shortest_path = self._reconstruct_path(source_node, destination_node, visited, parent)  # O(V)
-        if not shortest_path:
-            return [], math.inf
+        shortest_path = self._reconstruct_path(source_node, destination_node, parent)
 
-        return shortest_path, distance[destination_node]
+        return shortest_path, distances[destination_node]
 
     # # RARELY ASKED ********* APSP Methods *********
     # def floyd_warshall(self, adjacency_matrix: list[list[float]]):
