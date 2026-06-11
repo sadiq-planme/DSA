@@ -33,9 +33,9 @@ class BinarySearch:
         left, right = 0, len(self._arr) - 1
         while left <= right:
             mid = (left + right) >> 1
-            if self._arr[mid] == target:
+            if target == self._arr[mid]:
                 return mid
-            elif self._arr[mid] < target:
+            elif target > self._arr[mid]:
                 left = mid + 1
             else:
                 right = mid - 1
@@ -62,9 +62,9 @@ class BinarySearch:
             if left > right:
                 return -1
             mid = (left + right) >> 1
-            if self._arr[mid] == target:
+            if target == self._arr[mid]:
                 return mid
-            elif self._arr[mid] < target:
+            elif target > self._arr[mid]:
                 return helper(mid + 1, right)
             else:
                 return helper(left, mid - 1)

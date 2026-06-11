@@ -6,76 +6,205 @@ import math
 
 
 class MaxHeap:
-
+    
     def __init__(self):
-        self._heap: list[int] = []
-        self._size: int = 0
+        self._h: list[int] = []
+        self._n: int = 0
+    
+    def _parent(self, c: int) -> int:
+        return (c - 1) >> 1
 
-    # ********* Primary Methods *********
-    def push(self, data: int):
-        self._heap.append(data)
-        self._size += 1
-        self._heapify_up(self._size - 1)
+    def push(self, val: int) -> None:
+        """TC: O(log n) SC: O(1)"""
+        self._h.append(val)
+        self._n += 1
+        if self._n > 1:
+            c = self._n - 1
+            # Bubble up the newly inserted element to make it part of the heap
+            self._bubble_up(c, p)
+
+    def _bubble_up(self, c: int):
+        p = self._parent(c)
+        while p >= 0 and self._h[c] > self._h[p]:
+            self._h[c], self._h[p] = self._h[p], self._h[c]
+            c = p
+            p = self._parent(c)
+
+    def peak(self) -> int | None:
+        if self._n == 0:
+            return None
+        return self._h[0]
 
     def pop(self) -> int | None:
-        if self._size == 0:
+        """TC: O(log n) SC: O(1)"""
+        if self._n == 0:
             return None
-        self._heap[0], self._heap[-1] = self._heap[-1], self._heap[0]
-        self._size -= 1
-        self._heapify_down(0)
-        return self._heap.pop()
+        if self._n == 1:
+            self._n -= 1
+            return self._h.pop()
+        self._h[0], self._h[-1] = self._h[-1], self._h[0]
+        self._n -= 1
+        self._max_heapify(0)
+        return self._h.pop()
 
-    def top(self) -> int | None:
-        if self._size == 0:
-            return None
-        return self._heap[0]
+    def _left(self, p: int) -> int:
+        return (p << 1) + 1
 
+    def _max_heapify(self, p: int) -> None:
+        while True:
+            l = self._left(p)
+            r = l + 1
+            largest = p
+            if l < self._n and self._h[l] > self._[largest]:
+                largest = l
+            if r < self._n and self._h[r] > self._h[largest]:
+                largest = r
+            if largest != p:
+                self._h[largest], self._h[p] = self._h[p], self._h[largest]
+                p = largest
+            else:
+                break
+    
     def build(self, data: list[int]) -> None:
+        """TC: O(n) SC(n)"""
         if not data:
             return
-        self._heap = data
-        self._size = len(data)
-        for internal_node_index in range((self._size - 2) >> 1, -1, -1):  # range((self._size - 2) // 2, -1, -1)
-            self._heapify_down(internal_node_index)
+        self._h = data.copy()
+        self._n = len(data)
+        last_int = (self._n - 2) >> 1
+        for i in range(last_int, -1, -1):
+            self._max_heapify(i)
 
-    # ********* Helper Methods *********
-    def _heapify_up(self, child_index: int):
-        """Bubble up the element at child_index to maintain max heap property"""
-        parent_index = (child_index - 1) >> 1  # (child_index - 1) // 2
-        if (parent_index > 0) and (self._heap[child_index] > self._heap[parent_index]):
-            self._heap[child_index], self._heap[parent_index] = self._heap[parent_index], self._heap[child_index]
-            self._heapify_up(parent_index)
+    def sort(self) -> list[int] | None:
+        """TC: O(n log n) SC: O(1)"""
+        while self._n > 1:
+            l = self._n - 1
+            self._h[0], self._h[l] = self._h[l], self._h[0]
+            # size decrease in necessary before heapifying
+            self._n -= 1
+            self._max_heapify(0)
+        return self._h
 
-    def _heapify_down(self, parent_index: int):
-        """Bubble down the element at parent_index to maintain max heap property"""
-        left_child_index = (parent_index << 1) + 1
-        right_child_index = (parent_index << 1) + 2
-        largest = parent_index
-        
-        if (left_child_index < self._size) and (self._heap[left_child_index] > self._heap[largest]):
-            largest = left_child_index
-        if (right_child_index < self._size) and (self._heap[right_child_index] > self._heap[largest]):
-            largest = right_child_index
-        
-        if largest != parent_index:
-            self._heap[parent_index], self._heap[largest] = self._heap[largest], self._heap[parent_index]
-            self._heapify_down(largest)
-
-    # ********* Secondary Methods *********
-    def sort(self):
-        """
-            Sorts the heap in ascending order (heap sort).
-            Returns:
-                list[int]: The sorted heap.
-            Time Complexity: O(n log n)
-            Space Complexity: O(1)
-        """
-        while self._size > 1:
-            self._heap[0], self._heap[self._size - 1] = self._heap[self._size - 1], self._heap[0]  # MISTAKE: self._heap[self._size - 1]  != self._heap[-1]
-            self._size -= 1
-            self._heapify_down(0)
-        return self._heap
+    def initialize_heap(self) -> None:
+        self._n = 0
+        self._h.clear()
     
+    def change_key(self, i: int, v: int) -> None:
+        if self._h[i] < v:
+            self._decrease_key(i, v)
+        else:
+            self._increase_key(i, v)
+    
+    def _decrease_key(self, i: int, v: int) -> None:
+        self._h[i] = v
+        self._max_heapify(i)
+
+    def _increase_key(self, i: int, v: int) -> None:
+        self._h[i] = v
+        self._bubble_up(i)
+
+    def delete_key(self, i: int) -> bool:
+        # If the heap is Min Heap, we should be using the "_decrease_key" method with
+        # key "-float('inf')"
+        self._increase_key(i, float('inf'))
+        self.pop()
+    
+    @property
+    def size(self) -> int:
+        return self._n
+
+    @property
+    def empty(self) -> bool:
+        return self._n == 0
+
+# --------- PROBLEMS ---------
+def is_max_heap(data: list[int]) -> bool:
+    n = len(data)
+    last_int_id = (n - 2) >> 1
+    
+    for p in range(last_int_id, -1, -1):
+        lc = (p << 1) + 1
+        rc = lc + 1
+        
+        # If left child is greater than the parent
+        if lc < n and data[lc] > data[p]:
+            return False
+        
+        # If right child is greater than the parent
+        if rc < n and data[rc] > data[p]:
+            return False
+    
+    return True
+
+def convert_into_min_heap(data: list[int]) -> list[int]:
+    n = len(data)
+    last_int_id = (n - 2) >> 1
+
+    for p in range(last_int_id, -1, -1):
+        while True:
+            lc = (p << 1) + 1
+            rc = lc + 1
+
+            smallest = p
+
+            if lc < n and data[lc] < data[smallest]:
+                smallest = lc
+            if rc < n and data[rc] < data[smallest]:
+                smallest = rc
+
+            if smallest != p:
+                data[smallest], data[p] = data[p], data[smallest]
+                p = smallest
+            else:
+                break
+    
+    return data
+
+def k_th_largest(data: list[int], k: int) -> int:
+    if not data: 
+        return -1
+    
+    import heapq
+    pq = []
+
+    for i in range(k):
+        heapq.heappush(pq, data[i])
+
+    for i in range(k, len(data)):
+        if data[i] > pq[0]:
+            heapq.heappop(pq)
+            heapq.heappush(pq, data[i])
+    
+    return pq[0]
+
+# K th Largest Number in a Running stream of numbers
+import heapq
+class Soution:
+
+    def __init__(self, data: list[int], k: int):
+        self.k: int = k
+        self.pq: list[int] = []
+
+        for num in data:
+            if len(self.pq) < self.k:
+                heapq.heappush(self.pq, num)
+            elif num > self.pq[0]:
+                heapq.heappop(self.pq)
+                heapq.heappush(self.pq, num)
+
+    def k_th_largest(self, key: int):
+        if len(self.pq) < self.k:
+            heapq.heappush(self.pq, key)
+            return self.pq[0]
+        
+        if key > self.pq[0]:
+            heapq.heappop(self.pq)
+            heapq.heappush(self.pq, key)
+        
+        return self.pq[0]
+
+
+class MaxHeap:
     # ********* Problems *********
     def k_th_smallest(self, k: int, arr: list[int]):
         """
@@ -270,29 +399,7 @@ class LinkedListNode:
 
 
 class MinHeap:
-
     # ********* Problems *********
-    def k_th_largest(self, k: int, arr: list[int]):
-        """
-        Finds the kth largest element in the array using min heap.
-        Args:
-            k: The kth position (1-indexed)
-            arr: Input array
-        Returns:
-            int: The kth largest element, or None if invalid input
-        Time Complexity: O(n log k)
-        Space Complexity: O(k)
-        """
-        if not arr or k <= 0 or k > len(arr):
-            return None
-        self.heap = []
-        self.build(arr[:k])
-        for i in range(k, len(arr)):
-            if arr[i] > self.top():
-                self.pop()
-                self.push(arr[i])
-        return self.top()
-
     def merge_k_sorted_arrays(self, arrays: list[list[int]]):
         """
             Merges k sorted arrays into a single sorted array.
@@ -395,129 +502,3 @@ class MinHeap:
                 break  # One array exhausted
         
         return min_range_start, min_range_end
-
-
-# RARELY ASKED 1 QUESTION SOLVED HERE: MaxHeap with Binary Tree
-@dataclass
-class HeapTreeNode:
-    val: int
-    parent: HeapTreeNode | None = None
-    left: HeapTreeNode | None = None
-    right: HeapTreeNode | None = None
-
-
-class MaxHeapWithBinaryTree:
-
-    def __init__(self):
-        self.root: HeapTreeNode | None = None
-
-    # ********* Primary Methods *********
-    def push(self, val: int):  # O(n + log n)
-        """Add an element to the max heap using binary tree structure"""
-        if self.root is None:
-            self.root = HeapTreeNode(val)
-        else:
-            # Find the first available position (level-order insertion)
-            queue = deque([self.root])
-            while queue:
-                current_node = queue.popleft()
-                # Try to insert left
-                if current_node.left is None:
-                    current_node.left = HeapTreeNode(val, parent=current_node)
-                    self._heapify_up(current_node.left)
-                    break
-                # Try to insert right
-                if current_node.right is None:
-                    current_node.right = HeapTreeNode(val, parent=current_node)
-                    self._heapify_up(current_node.right)
-                    break
-                # Continue to next level
-                queue.append(current_node.left)
-                queue.append(current_node.right)
-
-    def _heapify_up(self, node: HeapTreeNode):  # O(log n)
-        """Bubble up the node to maintain max heap property"""
-        while node.parent is not None and node.val > node.parent.val:
-            node.val, node.parent.val = node.parent.val, node.val
-            node = node.parent
-
-    def pop(self):  # O(n + log n)
-        """Remove and return the maximum element from the heap"""
-        if self.root is None:
-            return None
-        
-        max_val = self.root.val
-        
-        # Find the last node in the tree (Level Order Traversal)
-        queue = deque([self.root])
-        last_node = None
-        while queue:
-            last_node = queue.popleft()
-            if last_node.left is not None:
-                queue.append(last_node.left)
-            if last_node.right is not None:
-                queue.append(last_node.right)
-        
-        # Edge Case: Only one node (root only)
-        if last_node == self.root:
-            self.root = None
-            return max_val
-        
-        # Move last node's value to root
-        self.root.val = last_node.val
-
-        # Remove the last node
-        if last_node.parent.left == last_node:
-            last_node.parent.left = None
-        else:
-            last_node.parent.right = None
-        
-        # Restore heap property downwards
-        self._heapify_down(self.root)
-        return max_val
-
-    def _heapify_down(self, node: HeapTreeNode | None):  # O(log n)
-        """Bubble down the node to maintain max heap property"""
-        while node and node.left is not None:
-            largest = node
-            # Compare with left child
-            if node.left.val > largest.val:
-                largest = node.left
-            # Compare with right child
-            if node.right is not None and node.right.val > largest.val:
-                largest = node.right
-            # Swap if child is larger
-            if largest != node:
-                node.val, largest.val = largest.val, node.val
-                node = largest
-            else:
-                break
-
-    def build(self, vals: list[int]):  # O(n^2)
-        """Build a max heap from a list of values"""
-        for val in vals:
-            self.push(val)
-
-    # ********* Problems *********
-    def is_heap(self):  # O(n)
-        """
-            Checks if the binary tree maintains max heap property.
-            Returns:
-                bool: True if valid max heap, False otherwise
-            Time Complexity: O(n)
-            Space Complexity: O(log n)
-        """
-        def helper(node: HeapTreeNode | None):
-            if node is None:
-                return True
-            # Check left child
-            if node.left is not None:
-                if node.left.val > node.val or not helper(node.left):
-                    return False
-            # Check right child
-            if node.right is not None:
-                if node.right.val > node.val or not helper(node.right):
-                    return False
-            return True
-        
-        return helper(self.root)

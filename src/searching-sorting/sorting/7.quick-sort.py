@@ -25,6 +25,37 @@ class QuickSort:
         self._arr = arr
 
     def sort(self):
+        if not self._arr or len(self._arr) <= 1:
+            return
+        self._quick_sort(0, len(self._arr) - 1)
+
+    def _quick_sort(self, left: int, right: int):
+        if left < right:
+            pivot_pos = self._partition(left, right)
+            self._quick_sort(left, pivot_pos - 1)
+            self._quick_sort(pivot_pos + 1, right)
+
+    def _partition(self, left: int, right: int):
+        pivot_idx = random.randint(left, right)
+        self._arr[pivot_idx], self._arr[right] = self._arr[right], self._arr[pivot_idx]
+        
+        left_boundary = left - 1
+        for current in range(left, right):
+            if self._arr[current] <= self._arr[right]:
+                left_boundary += 1
+                self._arr[left_boundary], self._arr[current] = self._arr[current], self._arr[left_boundary]
+        
+        left_boundary += 1
+        self._arr[left_boundary], self._arr[right] = self._arr[right], self._arr[left_boundary]
+        return left_boundary
+
+
+class QuickSort:
+
+    def __init__(self, arr: list[int]):
+        self._arr = arr
+
+    def sort(self):
         """Sorts array in-place. Handles empty/single element arrays."""
         if not self._arr or len(self._arr) <= 1:
             return
