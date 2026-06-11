@@ -23,37 +23,6 @@ class MergeSort:
         self._arr = arr
 
     def sort(self):
-        if len(self._arr) <= 1:
-            return
-        self._merge_sort(0, len(self._arr) - 1)
-
-    def _merge_sort(self, left: int, right: int):
-        if left < right:
-            mid = (left + right) // 2
-            self._merge_sort(left, mid)
-            self._merge_sort(mid + 1, right)
-            self._merge(left, mid, right)
-
-    def _merge(self, left: int, mid: int, right: int):
-        left_arr = self._arr[left:mid + 1] + [float('inf')]
-        right_arr = self._arr[mid + 1:right + 1] + [float('inf')]
-        
-        i = j = 0
-        for k in range(left, right + 1):
-            if left_arr[i] <= right_arr[j]:
-                self._arr[k] = left_arr[i]
-                i += 1
-            else:
-                self._arr[k] = right_arr[j]
-                j += 1
-
-
-class MergeSort:
-
-    def __init__(self, arr: list[int]):
-        self._arr = arr
-
-    def sort(self):
         """Sorts array in-place. Handles empty/single element edge cases."""
         if len(self._arr) <= 1:
             return

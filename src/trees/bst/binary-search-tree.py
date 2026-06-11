@@ -9,109 +9,13 @@ class TreeNode:
     right: TreeNode | None = None
 
 
-class BinarySearchTree:
-
-    def __init__(self):
-        self.root: TreeNode | None = None
-
-    def insert(self, ele: int):
-        def help(current_node: TreeNode | None, ele: int):
-            if current_node is None:
-                return TreeNode(ele)
-            if ele < current_node.data:
-                current_node.left = help(current_node.left, ele)
-            else:
-                current_node.right = help(current_node.right, ele)
-            return current_node
-
-        self.root = help(self.root, ele)
-
-    def build_bst(self, elements: list[int]):
-        for ele in elements:
-            self.insert(ele)
-
-    def search(self, data: int) -> bool:
-        def helper(node: TreeNode | None, data: int):
-            if node is None:
-                return False
-            if node.data == data:
-                return True
-            if data < node.data:
-                return helper(node.left, data)
-            else:
-                return helper(node.right, data)
-        
-        return helper(self.root, data)
-
-    def min(self):
-        if self.root is None:
-            raise ValueError("Cannot find minimum in empty tree")
-        temp = self.root
-        while temp.left is not None:
-            temp = temp.left
-        return temp.data
-
-    def max(self) -> int:
-        if self.root is None:
-            raise ValueError("Cannot find maximum in empty tree")
-        temp = self.root
-        while temp.right is not None:
-            temp = temp.right
-        return temp.data
-
-    def inorder_traversal(self):
-        result: list[int] = []
-        def helper(node: TreeNode | None):
-            if node is None:
-                return
-            helper(node.left)
-            result.append(node.data)
-            helper(node.right)
-        
-        helper(self.root)
-        return result
-
-    def delete(self, data: int):
-        def find_successor(node: TreeNode) -> int:
-            """Finds the in-order successor (minimum in right subtree)."""
-            temp = node
-            while temp.left is not None:
-                temp = temp.left
-            return temp.data
-
-        def helper(node: TreeNode | None, data: int):
-            # base case
-            if node is None:
-                return None
-            # recursive case
-            if data < node.data:
-                node.left = helper(node.left, data)
-            elif data > node.data:
-                node.right = helper(node.right, data)
-            else:
-                # Handling leaf node
-                if (node.left is None) and (node.right is None):
-                    return None
-                # Handling internal node with one child
-                if node.left is None:
-                    return node.right
-                if node.right is None:
-                    return node.left
-                # Handling internal node with two children
-                successor = find_successor(node.right)
-                node.data = successor
-                node.right = helper(node.right, successor)
-            return node
-
-        self.root = helper(self.root, data)
-        return self.root
-
 @dataclass
 class TreeNodeMetadata:
     min: float
     max: float
     size: int
     is_bst: bool
+
 
 class BinarySearchTree:
 
