@@ -2,7 +2,7 @@
 Render post-INSERT ASCII snapshots for interview demo sequences.
 Used by docs/INTERVIEW_TREE_SEQUENCES.md generation; also runnable standalone.
 """
-from __future__ import annotations
+
 
 import importlib.util
 import sys

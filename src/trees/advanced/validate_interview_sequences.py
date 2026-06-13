@@ -2,7 +2,7 @@
 Verify interview INSERT/DELETE sequences hit expected B-tree / B+ tree edge cases (t=2).
 Run: python src/trees/validate_interview_sequences.py
 """
-from __future__ import annotations
+
 
 import importlib.util
 import sys

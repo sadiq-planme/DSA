@@ -98,7 +98,7 @@ class UndirectedGraph:
                     helper(neigh, curr)
 
         for start in range(V):
-            if visited[start]:
+            if not visited[start]:
                 # DFS traversal on a new connected component started
                 components.append([])
                 helper(start, -1)
@@ -173,6 +173,8 @@ class UndirectedGraph:
 
         while pq:
             curr_dis, curr = heapq.heappop(pq)
+            if curr_dis > distances[curr]:
+                continue
 
             # starting the BFS traversal on curr node
             for dis, neigh in self.adj_list[curr]:

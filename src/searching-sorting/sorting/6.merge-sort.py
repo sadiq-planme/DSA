@@ -4,7 +4,7 @@
     COMPLEXITY: Time O(n log n) all cases | Space O(n) | Stable: Yes | In-place: No
 
     ALGORITHM: Divide → Split array in half | Conquer → Recursively sort halves | Combine → Merge sorted halves
-    Key: Sentinel values (float('inf')) eliminate boundary checks in merge
+    Key: Values (float('inf')) eliminate boundary checks in merge
 
     WHEN TO USE:
     ✅ Stability required | External sorting | Guaranteed O(n log n) | Linked lists
@@ -19,14 +19,10 @@
 
 class MergeSort:
 
-    def __init__(self, arr: list[int]):
-        self._arr = arr
-
-    def sort(self):
-        """Sorts array in-place. Handles empty/single element edge cases."""
-        if len(self._arr) <= 1:
-            return
-        self._merge_sort(0, len(self._arr) - 1)
+    def sort(self, arr: list[int]):
+        if len(arr) > 1:
+            self._arr = arr
+            self._merge_sort(0, len(self._arr) - 1)
 
     def _merge_sort(self, left: int, right: int):
         """Divide: split until base case. Conquer: merge sorted halves."""
@@ -37,7 +33,7 @@ class MergeSort:
             self._merge(left, mid, right)
 
     def _merge(self, left: int, mid: int, right: int):
-        """Merges [left...mid] and [mid+1...right]. Sentinel values avoid boundary checks."""
+        """Merges [left...mid] and [mid+1...right]. Add infinity values avoid boundary checks."""
         left_arr = self._arr[left:mid + 1] + [float('inf')]
         right_arr = self._arr[mid + 1:right + 1] + [float('inf')]
         
